@@ -1,6 +1,6 @@
 # V2VEC — 访谈语音转结构化问答
 
-将面试/访谈录音自动转换为结构化的「问题—回答」Markdown 文本。
+将面试录音自动转换为结构化的「问题—回答」Markdown 文本。
 
 **核心流程：** 上传音频 → 阿里云 DashScope qwen3-asr-flash API 转写 → Q&A 智能切分 → Markdown 输出
 
@@ -290,7 +290,3 @@ python model/model_utils.py /path/to/audio.m4a
 | `QA_LLM_MODEL` | `gpt-4o-mini` | LLM 模型名 |
 | `HOST` | `0.0.0.0` | 服务监听地址 |
 | `PORT` | `8000` | 服务监听端口 |
-
-## License
-
-MIT
