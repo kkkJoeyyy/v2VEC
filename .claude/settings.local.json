@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -c ' *)",
+      "Bash(./venv/bin/python -m pytest tests/test_qa_extractor.py -v)",
+      "Bash(./venv/bin/python -m pytest tests/test_routes.py -v)",
+      "Bash(./venv/bin/python -m pytest tests/ -v --tb=short)",
+      "Bash(./venv/bin/python -m pytest tests/test_routes.py -v --tb=long)",
+      "Bash(./venv/bin/python -m pytest tests/test_routes.py -v --tb=short)",
+      "Bash(ffmpeg -version)",
+      "Bash(./venv/bin/python -c ' *)",
+      "Read(//opt/homebrew/bin/**)",
+      "Read(//usr/local/bin/**)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:help.aliyun.com)",
+      "Bash(./venv/bin/python -c \"import dashscope; print\\(dashscope.__version__\\)\")",
+      "Bash(./venv/bin/pip install *)",
+      "Bash(./venv/bin/python -c \"import dashscope; print\\('dashscope', dashscope.__version__ if hasattr\\(dashscope, '__version__'\\) else 'OK'\\)\")",
+      "Bash(\"/Users/wuchuyi/Library/Mobile Documents/com~apple~CloudDocs/develop_projects/llm_projects/v2VEC/venv/bin/python\" -c \"import dashscope; print\\(dir\\(dashscope.audio\\)\\)\")",
+      "Bash(\"/Users/wuchuyi/Library/Mobile Documents/com~apple~CloudDocs/develop_projects/llm_projects/v2VEC/venv/bin/python\" -c \"from dashscope.audio.asr import Transcription; help\\(Transcription.call\\)\")",
+      "Bash(\"/Users/wuchuyi/Library/Mobile Documents/com~apple~CloudDocs/develop_projects/llm_projects/v2VEC/venv/bin/python\" -c \"from dashscope.audio.asr import Transcription; help\\(Transcription\\)\")",
+      "Bash(\"/Users/wuchuyi/Library/Mobile Documents/com~apple~CloudDocs/develop_projects/llm_projects/v2VEC/venv/bin/python\" -c \"from dashscope.audio.asr import Transcription; help\\(Transcription.list\\)\")",
+      "Bash(\"/Users/wuchuyi/Library/Mobile Documents/com~apple~CloudDocs/develop_projects/llm_projects/v2VEC/venv/bin/python\" -c \"from dashscope.audio.asr import Transcription; help\\(Transcription.async_call\\)\")",
+      "Bash(\"/Users/wuchuyi/Library/Mobile Documents/com~apple~CloudDocs/develop_projects/llm_projects/v2VEC/venv/bin/python\" -c \"from dashscope.api_entities.dashscope_response import TranscriptionResponse; help\\(TranscriptionResponse\\)\")",
+      "Bash(./venv/bin/python -c \"import dotenv; print\\(dotenv.__version__\\)\")"
+    ]
+  }
+}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>V2VEC — 访谈语音转 QA</title>
+    <style>
+        :root {
+            --bg: #f5f5f7;
+            --card-bg: #ffffff;
+            --border: #e0e0e6;
+            --text: #1d1d1f;
+            --text-secondary: #86868b;
+            --accent: #0071e3;
+            --accent-hover: #0060c7;
+            --success: #34c759;
+            --warning: #ff9500;
+            --radius: 16px;
+            --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "PingFang SC", "Noto Sans SC", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        .container { width: 100%; max-width: 800px; }
+
+        header { text-align: center; margin-bottom: 32px; }
+        header h1 { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; }
+        header p  { color: var(--text-secondary); margin-top: 6px; font-size: 15px; }
+
+        /* ── Upload zone ─────────────────────── */
+        .upload-zone {
+            background: var(--card-bg);
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 48px 24px;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--accent);
+            background: #f0f6ff;
+        }
+        .upload-zone.has-file {
+            border-style: solid;
+            border-color: var(--accent);
+            background: #f0f6ff;
+        }
+        .upload-icon { font-size: 40px; margin-bottom: 12px; }
+        .upload-text { font-size: 16px; color: var(--text-secondary); }
+        .upload-text strong { color: var(--accent); cursor: pointer; }
+        .upload-text strong:hover { text-decoration: underline; }
+        .file-name { margin-top: 8px; font-size: 14px; color: var(--accent); font-weight: 500; }
+
+        /* ── Progress ────────────────────────── */
+        .progress-wrap { margin-top: 20px; display: none; }
+        .progress-wrap.active { display: block; }
+        .progress-bar {
+            height: 6px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            border-radius: 3px;
+            transition: width .5s ease;
+        }
+        .progress-fill.indeterminate {
+            width: 30%;
+            animation: progress-scan 1.4s ease-in-out infinite;
+        }
+        @keyframes progress-scan {
+            0%   { transform: translateX(-100%); }
+            50%  { transform: translateX(240%); }
+            100% { transform: translateX(-100%); }
+        }
+        .progress-text {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* ── Streaming panel ──────────────────── */
+        .stream-panel {
+            margin-top: 20px;
+            display: none;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+        .stream-panel.active { display: block; }
+        .stream-panel .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .live-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse-dot 1.2s ease-in-out infinite;
+        }
+        .live-dot.done { background: var(--accent); animation: none; }
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.4; transform: scale(0.75); }
+        }
+        .live-label { font-size: 14px; font-weight: 500; }
+        .live-chars { font-size: 12px; color: var(--text-secondary); margin-left: auto; }
+        .stream-text {
+            background: #f9f9fb;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 18px;
+            font-size: 14px;
+            line-height: 1.8;
+            color: var(--text);
+            white-space: pre-wrap;
+            max-height: 360px;
+            overflow-y: auto;
+            min-height: 60px;
+        }
+        .stream-text .cursor-blink {
+            display: inline-block;
+            width: 2px; height: 16px;
+            background: var(--accent);
+            margin-left: 2px;
+            vertical-align: text-bottom;
+            animation: blink 0.8s step-end infinite;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* ── Result ──────────────────────────── */
+        .result-wrap { margin-top: 28px; display: none; }
+        .result-wrap.active { display: block; }
+        .result-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 28px;
+            box-shadow: var(--shadow);
+        }
+        .result-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .result-title { font-size: 18px; font-weight: 600; }
+        .result-meta { font-size: 13px; color: var(--text-secondary); }
+        .result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .btn {
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--card-bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: all .15s;
+            white-space: nowrap;
+        }
+        .btn:hover { background: #f0f0f5; }
+        .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+        .btn-primary:hover { background: var(--accent-hover); }
+
+        .qa-block {
+            margin-bottom: 20px;
+            padding: 18px;
+            background: #f9f9fb;
+            border-radius: 12px;
+            border-left: 3px solid var(--accent);
+        }
+        .qa-block .q { font-weight: 600; margin-bottom: 6px; color: var(--accent); }
+        .qa-block .a { color: var(--text); line-height: 1.7; }
+        .qa-index {
+            display: inline-block;
+            background: var(--accent);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            width: 22px; height: 22px;
+            line-height: 22px;
+            text-align: center;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .raw-transcript {
+            margin-top: 24px;
+            padding: 18px;
+            background: #fefefe;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.7;
+            max-height: 240px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .raw-transcript.active { display: block; }
+
+        .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+        /* ── phase badge ──────────────────── */
+        .phase-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .phase-transcribing { background: #fff3e0; color: #e65100; }
+        .phase-extracting  { background: #e8f5e9; color: #2e7d32; }
+        .phase-done         { background: #e3f2fd; color: #1565c0; }
+
+        /* ── Step timeline ────────────────── */
+        .steps {
+            display: flex;
+            justify-content: center;
+            gap: 0;
+            margin-bottom: 24px;
+            padding: 0 20px;
+        }
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        .step .step-num {
+            width: 22px; height: 22px;
+            line-height: 22px;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            background: var(--border);
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+        .step.active .step-num {
+            background: var(--accent);
+            color: #fff;
+        }
+        .step.done .step-num {
+            background: var(--success);
+            color: #fff;
+        }
+        .step.active { color: var(--text); font-weight: 500; }
+        .step.done    { color: var(--text); }
+        .step-arrow {
+            margin: 0 10px;
+            color: var(--border);
+            font-size: 11px;
+        }
+        .step.done + .step-arrow { color: var(--success); }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <h1>访谈语音转 QA</h1>
+        <p>上传面试 / 访谈录音，自动转换为结构化问答文本</p>
+    </header>
+
+    <!-- Upload -->
+    <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">🎙️</div>
+        <div class="upload-text">拖拽音频文件到此处，或 <strong id="browseLink">点击选择文件</strong></div>
+        <div class="file-name" id="fileName"></div>
+    </div>
+    <input type="file" id="fileInput" style="display:none" accept="audio/*,.m4a,.mp3,.wav">
+
+    <!-- Progress -->
+    <div class="progress-wrap" id="progressWrap">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="progress-text" id="progressText">准备中...</div>
+    </div>
+
+    <!-- Streaming live text -->
+    <div class="stream-panel" id="streamPanel">
+        <div class="steps" id="stepsIndicator">
+            <div class="step active" id="stepUpload">
+                <span class="step-num">1</span> 上传
+            </div>
+            <span class="step-arrow">→</span>
+            <div class="step" id="stepASR">
+                <span class="step-num">2</span> 语音识别
+            </div>
+            <span class="step-arrow">→</span>
+            <div class="step" id="stepQA">
+                <span class="step-num">3</span> Q&A 提取
+            </div>
+        </div>
+        <div class="live-indicator">
+            <div class="live-dot" id="liveDot"></div>
+            <span class="live-label" id="liveLabel">实时转写中...</span>
+            <span class="phase-badge phase-transcribing" id="phaseBadge">转写中</span>
+            <span class="live-chars" id="liveChars"></span>
+        </div>
+        <div class="stream-text" id="streamText"><span class="cursor-blink"></span></div>
+    </div>
+
+    <!-- Result -->
+    <div class="result-wrap" id="resultWrap">
+        <div class="result-card">
+            <div class="result-header">
+                <div>
+                    <div class="result-title" id="resultTitle">访谈结果</div>
+                    <div class="result-meta" id="resultMeta"></div>
+                </div>
+                <div class="result-actions">
+                    <button class="btn" id="toggleRawBtn">查看原始转写</button>
+                    <button class="btn btn-primary" id="saveBtn">保存 Markdown</button>
+                    <button class="btn" id="copyBtn">复制内容</button>
+                </div>
+            </div>
+            <div id="qaContainer"></div>
+            <div class="raw-transcript" id="rawTranscript"></div>
+        </div>
+    </div>
+</div>
+
+<script src="/static/script.js"></script>
+</body>
+</html>
